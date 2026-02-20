@@ -55,33 +55,53 @@ class FluxsaveClient:
 
         return payload
 
-    def upload_file(self, file_path: str, name: Optional[str] = None, compression: Optional[str] = None) -> Any:
+    def upload_file(self, file_path: str, name: Optional[str] = None, compression: Optional[str] = None, folder_id: Optional[str] = None) -> Any:
         files = {"file": open(file_path, "rb")}
         data: Dict[str, Any] = {}
         if name:
             data["name"] = name
         if compression is not None:
             data["compression"] = compression
+        if folder_id is not None:
+            data["folderId"] = folder_id
         try:
             return self._request("POST", "/api/v1/files/upload", files=files, data=data)
         finally:
             files["file"].close()
 
-    def upload_files(self, file_paths: list[str], name: Optional[str] = None, compression: Optional[str] = None) -> Any:
+    def upload_files(self, file_paths: list[str], name: Optional[str] = None, compression: Optional[str] = None, folder_id: Optional[str] = None) -> Any:
         files = [("files", open(path, "rb")) for path in file_paths]
         data: Dict[str, Any] = {}
         if name:
             data["name"] = name
         if compression is not None:
             data["compression"] = compression
+        if folder_id is not None:
+            data["folderId"] = folder_id
         try:
             return self._request("POST", "/api/v1/files/upload", files=files, data=data)
         finally:
             for _, fh in files:
                 fh.close()
 
-    def list_files(self) -> Any:
-        return self._request("GET", "/api/v1/files")
+    def list_files(self, folder_id: Optional[str] = None) -> Any:
+        path = f"/api/v1/files?folderId={folder_id}" if folder_id else "/api/v1/files"
+        return self._request("GET", path)
+
+    def list_folders(self) -> Any:
+        return self._request("GET", "/api/v1/folders")
+
+    def create_folder(self, name: str, parent_id: Optional[str] = None) -> Any:
+        data: Dict[str, Any] = {"name": name}
+        if parent_id is not None:
+            data["parentId"] = parent_id
+        return self._request("POST", "/api/v1/folders", json=data)
+
+    def rename_folder(self, folder_id: str, name: str) -> Any:
+        return self._request("PATCH", f"/api/v1/folders/{folder_id}", json={"name": name})
+
+    def delete_folder(self, folder_id: str) -> Any:
+        return self._request("DELETE", f"/api/v1/folders/{folder_id}")
 
     def get_file_metadata(self, file_id: str) -> Any:
         return self._request("GET", f"/api/v1/files/metadata/{file_id}")
