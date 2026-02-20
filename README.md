@@ -36,4 +36,4 @@ print(response)
 
 ## Docs
 
-https://vaultsens-sdk-docs.vercel.app/
+https://vaultsens.com/
