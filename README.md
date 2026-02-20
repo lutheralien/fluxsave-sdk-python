@@ -48,15 +48,24 @@ Upload a single file.
 ```python
 result = client.upload_file(
     "./photo.png",
-    name="my-image",           # optional display name
-    compression="medium",      # 'none' | 'low' | 'medium' | 'high'
-    folder_id="folder-id",     # optional folder to place the file in
+    name="my-image",       # optional display name stored with the file
+    compression="medium",  # compression level applied server-side
+    folder_id="folder-id", # place the file inside this folder
 )
 ```
 
+**Upload parameters**
+
+| Parameter | Type | Description |
+|---|---|---|
+| `file_path` | `str` | Path to the file on disk |
+| `name` | `str?` | Display name stored with the file |
+| `compression` | `str?` | Server-side compression: `'none'` \| `'low'` \| `'medium'` \| `'high'`. Must be allowed by your plan |
+| `folder_id` | `str?` | ID of the folder to place the file in. Omit for root |
+
 #### `upload_files(file_paths, name=None, compression=None, folder_id=None)`
 
-Upload multiple files in one request.
+Upload multiple files in one request. Accepts the same parameters as `upload_file`.
 
 ```python
 result = client.upload_files(
@@ -84,7 +93,7 @@ meta = client.get_file_metadata("file-id")
 
 #### `update_file(file_id, file_path, name=None, compression=None)`
 
-Replace a file's content.
+Replace a file's content. Accepts `name` and `compression` — `folder_id` is not supported (file stays in its current folder).
 
 ```python
 client.update_file("file-id", "./new-photo.png", compression="high")
@@ -98,11 +107,20 @@ client.delete_file("file-id")
 
 #### `build_file_url(file_id, **options)`
 
-Build a URL for dynamic image transforms.
+Build a URL for dynamic image transforms. No network request is made.
 
 ```python
 url = client.build_file_url("file-id", width=800, height=600, format="webp", quality=80)
 ```
+
+**Transform options**
+
+| Option | Type | Description |
+|---|---|---|
+| `width` | `int?` | Output width in pixels |
+| `height` | `int?` | Output height in pixels (fit: inside, aspect ratio preserved) |
+| `format` | `str?` | Output format e.g. `'webp'`, `'jpeg'`, `'png'` |
+| `quality` | `int?` | Compression quality `1–100` |
 
 ---
 
