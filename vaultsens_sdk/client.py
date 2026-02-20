@@ -38,9 +38,9 @@ def _resolve_error_code(status: int, message: str) -> str:
 
 
 @dataclass
-class FluxsaveError(Exception):
+class VaultSensError(Exception):
     """
-    Raised when the Fluxsave API returns an error response.
+    Raised when the VaultSens API returns an error response.
 
     Attributes:
         message:    Human-readable error description from the API.
@@ -77,7 +77,7 @@ class FluxsaveError(Exception):
         return f"{self.status} [{self.code}]: {self.message}"
 
 
-class FluxsaveClient:
+class VaultSensClient:
     def __init__(
         self,
         base_url: str,
@@ -96,7 +96,7 @@ class FluxsaveClient:
 
     def _headers(self) -> Dict[str, str]:
         if not self.api_key or not self.api_secret:
-            raise FluxsaveError("API key and secret are required", 401)
+            raise VaultSensError("API key and secret are required", 401)
         return {
             "x-api-key": self.api_key,
             "x-api-secret": self.api_secret,
@@ -112,7 +112,7 @@ class FluxsaveClient:
 
         if not response.ok:
             message = payload.get("message") if isinstance(payload, dict) else response.reason
-            raise FluxsaveError(message or response.reason, response.status_code, payload)
+            raise VaultSensError(message or response.reason, response.status_code, payload)
 
         return payload
 

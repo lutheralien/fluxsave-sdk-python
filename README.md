@@ -1,20 +1,20 @@
-# fluxsave-sdk
+# vaultsens-sdk
 
-Python SDK for FluxSave. API key + secret authentication with file upload and management helpers.
+Python SDK for VaultSens. API key + secret authentication with file upload and management helpers.
 
 ## Install
 
 ```bash
-pip install fluxsave-sdk
+pip install vaultsens-sdk
 ```
 
 ## Usage
 
 ```python
-from fluxsave_sdk import FluxsaveClient
+from vaultsens_sdk import VaultSensClient
 
-client = FluxsaveClient(
-    base_url="https://fluxsaveapi.lutheralien.com",
+client = VaultSensClient(
+    base_url="https://api.vaultsens.com",
     api_key="fs_xxx",
     api_secret="sk_xxx",
 )
@@ -36,4 +36,4 @@ print(response)
 
 ## Docs
 
-https://fluxsave-sdk-docs.vercel.app/
+https://vaultsens-sdk-docs.vercel.app/
