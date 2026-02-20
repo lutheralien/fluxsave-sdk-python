@@ -1,19 +1,80 @@
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import Any, Dict, Optional
 
 import requests
 
 
+def _resolve_error_code(status: int, message: str) -> str:
+    m = message.lower()
+    if status == 413 and "storage limit" in m:
+        return "STORAGE_LIMIT"
+    if status == 413:
+        return "FILE_TOO_LARGE"
+    if status == 415:
+        return "MIME_TYPE_NOT_ALLOWED"
+    if status == 402:
+        return "SUBSCRIPTION_INACTIVE"
+    if status == 403 and "compression" in m:
+        return "COMPRESSION_NOT_ALLOWED"
+    if status == 403 and "folder" in m:
+        return "FOLDER_COUNT_LIMIT"
+    if status == 403 and ("file" in m or "maximum" in m):
+        return "FILE_COUNT_LIMIT"
+    if status == 403 and "email" in m:
+        return "EMAIL_NOT_VERIFIED"
+    if status == 400 and "already registered" in m:
+        return "EMAIL_ALREADY_REGISTERED"
+    if status == 400 and ("invalid email or password" in m or "invalid credentials" in m):
+        return "INVALID_CREDENTIALS"
+    if status == 400 and "otp" in m:
+        return "INVALID_OTP"
+    if status == 401:
+        return "UNAUTHORIZED"
+    if status == 404:
+        return "NOT_FOUND"
+    return "UNKNOWN"
+
+
 @dataclass
 class FluxsaveError(Exception):
+    """
+    Raised when the Fluxsave API returns an error response.
+
+    Attributes:
+        message:    Human-readable error description from the API.
+        status:     HTTP status code.
+        code:       Machine-readable error code (e.g. ``"FILE_TOO_LARGE"``).
+        data:       Raw response payload, if any.
+
+    Error codes:
+        FILE_TOO_LARGE           – 413: file exceeds plan's maxFileSizeBytes
+        STORAGE_LIMIT            – 413: total storage quota exceeded
+        FILE_COUNT_LIMIT         – 403: plan's maxFilesCount reached
+        MIME_TYPE_NOT_ALLOWED    – 415: file type blocked by plan
+        COMPRESSION_NOT_ALLOWED  – 403: compression level not permitted by plan
+        SUBSCRIPTION_INACTIVE    – 402: user subscription is not active
+        FOLDER_COUNT_LIMIT       – 403: plan's maxFoldersCount reached
+        EMAIL_ALREADY_REGISTERED – 400: duplicate email on register
+        EMAIL_NOT_VERIFIED       – 403: login before verifying email
+        INVALID_CREDENTIALS      – 400: wrong email or password
+        INVALID_OTP              – 400: bad/expired verification code
+        UNAUTHORIZED             – 401
+        NOT_FOUND                – 404
+        UNKNOWN                  – anything else
+    """
+
     message: str
     status: int
     data: Optional[Any] = None
+    code: str = field(init=False)
+
+    def __post_init__(self) -> None:
+        self.code = _resolve_error_code(self.status, self.message)
 
     def __str__(self) -> str:
-        return f"{self.status}: {self.message}"
+        return f"{self.status} [{self.code}]: {self.message}"
 
 
 class FluxsaveClient:
