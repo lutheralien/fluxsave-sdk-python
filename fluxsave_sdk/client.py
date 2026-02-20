@@ -55,25 +55,25 @@ class FluxsaveClient:
 
         return payload
 
-    def upload_file(self, file_path: str, name: Optional[str] = None, transform: Optional[bool] = None) -> Any:
+    def upload_file(self, file_path: str, name: Optional[str] = None, compression: Optional[str] = None) -> Any:
         files = {"file": open(file_path, "rb")}
         data: Dict[str, Any] = {}
         if name:
             data["name"] = name
-        if transform is not None:
-            data["transform"] = str(transform).lower()
+        if compression is not None:
+            data["compression"] = compression
         try:
             return self._request("POST", "/api/v1/files/upload", files=files, data=data)
         finally:
             files["file"].close()
 
-    def upload_files(self, file_paths: list[str], name: Optional[str] = None, transform: Optional[bool] = None) -> Any:
+    def upload_files(self, file_paths: list[str], name: Optional[str] = None, compression: Optional[str] = None) -> Any:
         files = [("files", open(path, "rb")) for path in file_paths]
         data: Dict[str, Any] = {}
         if name:
             data["name"] = name
-        if transform is not None:
-            data["transform"] = str(transform).lower()
+        if compression is not None:
+            data["compression"] = compression
         try:
             return self._request("POST", "/api/v1/files/upload", files=files, data=data)
         finally:
@@ -91,14 +91,14 @@ class FluxsaveClient:
         file_id: str,
         file_path: str,
         name: Optional[str] = None,
-        transform: Optional[bool] = None,
+        compression: Optional[str] = None,
     ) -> Any:
         files = {"file": open(file_path, "rb")}
         data: Dict[str, Any] = {}
         if name:
             data["name"] = name
-        if transform is not None:
-            data["transform"] = str(transform).lower()
+        if compression is not None:
+            data["compression"] = compression
         try:
             return self._request("PUT", f"/api/v1/files/{file_id}", files=files, data=data)
         finally:
