@@ -32,16 +32,22 @@ jobs:
 
       - name: Set version (manual runs)
         if: ${{ github.event_name == 'workflow_dispatch' && inputs.version != '' }}
+        env:
+          NEW_VERSION: ${{ inputs.version }}
         run: |
           python - <<'PY'
+          import os, re
           from pathlib import Path
-          import re
-          version = "${{ inputs.version }}"
+          version = os.environ["NEW_VERSION"]
           path = Path("pyproject.toml")
           text = path.read_text()
-          text = re.sub(r'(?m)^version = \"[^\"]+\"$', f'version = \"{version}\"', text)
-          path.write_text(text)
-          print(f"Updated version to {version}")
+          current = re.search(r'(?m)^version = "([^"]+)"$', text)
+          if current and current.group(1) == version:
+              print(f"Version is already {version}, skipping.")
+          else:
+              text = re.sub(r'(?m)^version = "[^"]+"$', f'version = "{version}"', text)
+              path.write_text(text)
+              print(f"Updated version to {version}")
           PY
 
       - name: Build
